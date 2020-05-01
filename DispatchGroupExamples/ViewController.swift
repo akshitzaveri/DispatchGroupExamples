@@ -37,16 +37,25 @@ final class ViewController: UIViewController {
 
     self.isWaiting = true
 
+    // Step0: Creating and entering dispatch groups
+    let group = DispatchGroup()
+    group.enter()
+    group.enter()
+
     // Step1: Call posts API
     AF.request(Endpoint.posts).response { response in
-
-      // Step2: Call comments API
-      AF.request(Endpoint.comments).response { response in
-
-        // Step3: Update the UI
-        self.isWaiting = false
-      }
+      group.leave()
     }
+
+    // Step2: Call comments API
+    AF.request(Endpoint.comments).response { response in
+      group.leave()
+    }
+
+    group.notify(queue: .main, execute: {
+      // Step3: Update the UI
+      self.isWaiting = false
+    })
   }
 
   // 6
